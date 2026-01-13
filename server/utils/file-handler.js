@@ -13,7 +13,7 @@ const deleteFile = (fileUrl) => {
         const filename = fileUrl.split('/').pop();
         if (!filename) return;
 
-        const filePath = path.join(__dirname, '../uploads', filename);
+        const filePath = path.join(__dirname, '../public/uploads', filename);
 
         // Check if file exists and delete it
         if (fs.existsSync(filePath)) {
