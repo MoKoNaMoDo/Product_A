@@ -33,7 +33,7 @@ exports.getProductById = async (req, res) => {
 // Create a new product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, price, category } = req.body;
+        const { name, description, price, category, is_recommended } = req.body;
         let { image_url } = req.body;
 
         if (req.file) {
@@ -41,8 +41,8 @@ exports.createProduct = async (req, res) => {
         }
 
         const { rows } = await db.query(
-            'INSERT INTO products (name, description, price, image_url, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [name, description, price, image_url, category]
+            'INSERT INTO products (name, description, price, image_url, category, is_recommended) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [name, description, price, image_url, category, is_recommended || false]
         );
         await logActivity('CREATE_PRODUCT', `Created product: ${name}`);
         res.status(201).json(rows[0]);
@@ -56,7 +56,7 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, category } = req.body;
+        const { name, description, price, category, is_recommended } = req.body;
         let { image_url } = req.body;
 
         if (req.file) {
@@ -67,11 +67,20 @@ exports.updateProduct = async (req, res) => {
             }
 
             image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        } else {
+            // If no new image, keep the existing one
+            // Check if image_url is provided in body (e.g. explicitly clearing it), otherwise fetch existing
+            if (image_url === undefined) {
+                const oldProductRes = await db.query('SELECT image_url FROM products WHERE id = $1', [id]);
+                if (oldProductRes.rows.length > 0) {
+                    image_url = oldProductRes.rows[0].image_url;
+                }
+            }
         }
 
         const { rows } = await db.query(
-            'UPDATE products SET name = $1, description = $2, price = $3, image_url = $4, category = $5 WHERE id = $6 RETURNING *',
-            [name, description, price, image_url, category, id]
+            'UPDATE products SET name = $1, description = $2, price = $3, image_url = $4, category = $5, is_recommended = $6 WHERE id = $7 RETURNING *',
+            [name, description, price, image_url, category, is_recommended, id]
         );
 
         if (rows.length === 0) {

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function CreateProductPage() {
     const router = useRouter();
@@ -12,14 +13,31 @@ export default function CreateProductPage() {
         name: '',
         description: '',
         price: '',
-        category: ''
+        category: '',
+        is_recommended: false
     });
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/categories`);
+                setCategories(res.data);
+            } catch (error) {
+                console.error('Failed to fetch categories', error);
+            }
+        };
+        fetchCategories();
+    }, []);
+
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setFormData({ ...formData, [e.target.name]: value });
     };
 
     const handleImageChange = (e) => {
@@ -31,6 +49,12 @@ export default function CreateProductPage() {
     };
 
     const handleSubmit = async (e) => {
+        // ... (rest of handleSubmit logic remains the same, assuming it's correctly scoped if I don't touch it)
+        // Wait, replace_file_content replaces the whole block. I need to be careful not to lose handleSubmit logic 
+        // if I'm replacing a chunk that includes it. 
+        // The instruction says "Fetch categories and replace input with select dropdown".
+        // I should probably do two separate edits or one big one.
+        // Let's do the fetchCategories inside the component body first.
         e.preventDefault();
         setLoading(true);
         try {
@@ -41,6 +65,7 @@ export default function CreateProductPage() {
             data.append('description', formData.description);
             data.append('price', formData.price);
             data.append('category', formData.category);
+            data.append('is_recommended', formData.is_recommended);
             if (image) {
                 data.append('image', image);
             }
@@ -50,11 +75,21 @@ export default function CreateProductPage() {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            alert('Product Created Successfully!');
+            await Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Product Created Successfully!',
+                timer: 2000,
+                showConfirmButton: false
+            });
             router.push('/admin/products');
         } catch (error) {
             console.error(error);
-            alert('Failed to create product');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to create product'
+            });
         } finally {
             setLoading(false);
         }
@@ -88,7 +123,17 @@ export default function CreateProductPage() {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <input name="category" onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="e.g. Electronics" />
+                            <select
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white"
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -100,6 +145,20 @@ export default function CreateProductPage() {
                                 <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-gray-200" />
                             </div>
                         )}
+                    </div>
+
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            name="is_recommended"
+                            id="is_recommended"
+                            checked={formData.is_recommended}
+                            onChange={handleChange}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="is_recommended" className="ml-2 block text-sm text-gray-900">
+                            Show in Recommended Products (Homepage)
+                        </label>
                     </div>
 
                     <button

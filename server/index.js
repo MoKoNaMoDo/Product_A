@@ -12,6 +12,8 @@ const siteSettingsRoutes = require('./routes/site-settings.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const coreValuesRoutes = require('./routes/core-values.routes');
 const homeBannersRoutes = require('./routes/home-banners.routes');
+const contactRoutes = require('./routes/contact.routes');
+const categoryRoutes = require('./routes/category.routes');
 const db = require('./config/db');
 
 const app = express();
@@ -53,6 +55,8 @@ app.use('/api/site-settings', siteSettingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/core-values', coreValuesRoutes);
 app.use('/api/home-banners', homeBannersRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/categories', categoryRoutes);
 // app.use('/api/admin', adminRoutes);
 
 // Start Server

@@ -6,20 +6,28 @@ import axios from 'axios';
 
 export default function ProductsPage() {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [activeCategory, setActiveCategory] = useState('All');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [status, setStatus] = useState(null);
 
     useEffect(() => {
-        const fetchProducts = async () => {
+        const fetchData = async () => {
             try {
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-                const response = await axios.get(`${apiUrl}/api/products`);
 
-                if (response.status === 200) {
-                    setProducts(response.data);
+                // Fetch Products
+                const productRes = await axios.get(`${apiUrl}/api/products`);
+                if (productRes.status === 200) {
+                    setProducts(productRes.data);
                     setStatus(200);
                 }
+
+                // Fetch Categories
+                const categoryRes = await axios.get(`${apiUrl}/api/categories`);
+                setCategories(categoryRes.data);
+
             } catch (err) {
                 console.error("Fetch error:", err);
                 setError(err.message);
@@ -33,8 +41,12 @@ export default function ProductsPage() {
             }
         };
 
-        fetchProducts();
+        fetchData();
     }, []);
+
+    const filteredProducts = activeCategory === 'All'
+        ? products
+        : products.filter(p => p.category === activeCategory);
 
     if (loading) {
         return (
@@ -45,6 +57,7 @@ export default function ProductsPage() {
     }
 
     if (error) {
+        // ... (Error UI same as before)
         return (
             <div className="bg-gray-50 min-h-screen py-12 flex flex-col items-center justify-center">
                 <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative max-w-md text-center" role="alert">
@@ -70,21 +83,37 @@ export default function ProductsPage() {
                     <p className="text-gray-500 mt-2">เลือกชมสินค้าคุณภาพที่เราคัดสรรมาเพื่อคุณ</p>
                 </div>
 
-                {/* Filters (Mock) */}
-                <div className="flex gap-4 mb-8 overflow-x-auto pb-2">
-                    {['All', 'Electronics', 'Furniture', 'Clothing'].map((cat) => (
-                        <button key={cat} className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:border-primary-500 hover:text-primary-600 transition-colors whitespace-nowrap">
-                            {cat}
+                {/* Filters */}
+                <div className="flex gap-4 mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                    <button
+                        onClick={() => setActiveCategory('All')}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap border ${activeCategory === 'All'
+                            ? 'bg-primary-600 text-white border-primary-600'
+                            : 'bg-white text-gray-700 border-gray-200 hover:border-primary-500 hover:text-primary-600'
+                            }`}
+                    >
+                        All
+                    </button>
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setActiveCategory(cat.name)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors whitespace-nowrap border ${activeCategory === cat.name
+                                ? 'bg-primary-600 text-white border-primary-600'
+                                : 'bg-white text-gray-700 border-gray-200 hover:border-primary-500 hover:text-primary-600'
+                                }`}
+                        >
+                            {cat.name}
                         </button>
                     ))}
                 </div>
 
                 {/* Product Grid */}
-                {products.length === 0 ? (
-                    <div className="text-center py-12 text-gray-500">No products found.</div>
+                {filteredProducts.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500">No products found in this category.</div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {products.map((item) => (
+                        {filteredProducts.map((item) => (
                             <Link key={item.id} href={`/products/${item.id}`} className="group bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all">
                                 <div className="aspect-[4/3] bg-gray-200 relative">
                                     {/* Placeholder for real image since backend might not have image URL yet */}

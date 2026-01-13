@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function EditProductPage({ params }) {
     const router = useRouter();
@@ -14,13 +15,29 @@ export default function EditProductPage({ params }) {
         name: '',
         description: '',
         price: '',
-        category: ''
+
+        category: '',
+        is_recommended: false
     });
     const [currentImageUrl, setCurrentImageUrl] = useState('');
     const [image, setImage] = useState(null);
     const [imagePreview, setImagePreview] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+                const res = await axios.get(`${apiUrl}/api/categories`);
+                setCategories(res.data);
+            } catch (error) {
+                console.error('Failed to fetch categories', error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -42,7 +59,8 @@ export default function EditProductPage({ params }) {
     }, [id]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setFormData({ ...formData, [e.target.name]: value });
     };
 
     const handleImageChange = (e) => {
@@ -63,7 +81,9 @@ export default function EditProductPage({ params }) {
             data.append('name', formData.name);
             data.append('description', formData.description);
             data.append('price', formData.price);
+
             data.append('category', formData.category);
+            data.append('is_recommended', formData.is_recommended);
             if (image) {
                 data.append('image', image);
             }
@@ -73,11 +93,21 @@ export default function EditProductPage({ params }) {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            alert('Product Updated Successfully!');
+            await Swal.fire({
+                icon: 'success',
+                title: 'Updated!',
+                text: 'Product Updated Successfully!',
+                timer: 2000,
+                showConfirmButton: false
+            });
             router.push('/admin/products');
         } catch (error) {
             console.error(error);
-            alert('Failed to update product');
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update product'
+            });
         } finally {
             setSaving(false);
         }
@@ -113,7 +143,17 @@ export default function EditProductPage({ params }) {
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <input name="category" value={formData.category || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" />
+                            <select
+                                name="category"
+                                value={formData.category || ''}
+                                onChange={handleChange}
+                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-white"
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -127,6 +167,20 @@ export default function EditProductPage({ params }) {
                                 <img src={imagePreview || currentImageUrl} alt="Product" className="w-32 h-32 object-cover rounded-lg border border-gray-200" />
                             </div>
                         )}
+                    </div>
+
+                    <div className="flex items-center">
+                        <input
+                            type="checkbox"
+                            name="is_recommended"
+                            id="is_recommended"
+                            checked={formData.is_recommended || false}
+                            onChange={handleChange}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="is_recommended" className="ml-2 block text-sm text-gray-900">
+                            Show in Recommended Products (Homepage)
+                        </label>
                     </div>
 
                     <button

@@ -3,10 +3,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Image from 'next/image';
+import Swal from 'sweetalert2';
+import { useSearchParams } from 'next/navigation';
+
+
 
 export default function ContactPage() {
     const [settings, setSettings] = useState(null);
     const [loading, setLoading] = useState(true);
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -22,6 +27,49 @@ export default function ContactPage() {
         };
         fetchSettings();
     }, []);
+
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        subject: '',
+        message: ''
+    });
+
+    useEffect(() => {
+        const subjectParam = searchParams.get('subject');
+        if (subjectParam) {
+            setFormData(prev => ({ ...prev, subject: subjectParam }));
+        }
+    }, [searchParams]);
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            await axios.post(`${apiUrl}/api/contact`, formData);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Sent!',
+                text: 'Your message has been sent successfully.',
+                timer: 2000,
+                showConfirmButton: false
+            });
+            setFormData({ name: '', phone: '', email: '', subject: '', message: '' });
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to send message. Please try again.'
+            });
+        }
+    };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -116,30 +164,30 @@ export default function ContactPage() {
                     <div className="lg:col-span-2">
                         <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-gray-100">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6 font-sarabun">ส่งข้อความถึงเรา</h2>
-                            <form className="space-y-4">
+                            <form className="space-y-4" onSubmit={handleSubmit}>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อ - นามสกุล</label>
-                                        <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ระบุชื่อของคุณ" />
+                                        <input name="name" value={formData.name} onChange={handleChange} required type="text" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ระบุชื่อของคุณ" />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">เบอร์โทรศัพท์</label>
-                                        <input type="tel" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ระบุเบอร์โทรศัพท์" />
+                                        <input name="phone" value={formData.phone} onChange={handleChange} required type="tel" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ระบุเบอร์โทรศัพท์" />
                                     </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
-                                    <input type="email" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="example@email.com" />
+                                    <input name="email" value={formData.email} onChange={handleChange} required type="email" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="example@email.com" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">หัวข้อติดต่อ</label>
-                                    <input type="text" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ระบุหัวข้อเรื่อง" />
+                                    <input name="subject" value={formData.subject} onChange={handleChange} required type="text" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="ระบุหัวข้อเรื่อง" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียด</label>
-                                    <textarea rows="5" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="พิมพ์ข้อความของคุณที่นี่..."></textarea>
+                                    <textarea name="message" value={formData.message} onChange={handleChange} required rows="5" className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="พิมพ์ข้อความของคุณที่นี่..."></textarea>
                                 </div>
-                                <button type="button" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg w-full md:w-auto">
+                                <button type="submit" className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-lg w-full md:w-auto">
                                     ส่งข้อความ
                                 </button>
                             </form>

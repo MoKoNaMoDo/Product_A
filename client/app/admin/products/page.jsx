@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import axios from 'axios';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Star } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 export default function AdminProductsPage() {
     const [products, setProducts] = useState([]);
@@ -25,17 +26,75 @@ export default function AdminProductsPage() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this product?')) return;
-
+    const toggleRecommended = async (product) => {
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-            await axios.delete(`${apiUrl}/api/products/${id}`);
-            fetchProducts(); // Refresh list
-            alert('Product deleted successfully');
+            // Optimistic update
+            setProducts(prev => prev.map(p =>
+                p.id === product.id ? { ...p, is_recommended: !product.is_recommended } : p
+            ));
+
+            await axios.put(`${apiUrl}/api/products/${product.id}`, {
+                ...product,
+                is_recommended: !product.is_recommended
+            });
+
+            // Optional: Silent success or small toast
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+            Toast.fire({
+                icon: 'success',
+                title: !product.is_recommended ? 'Added to Recommended' : 'Removed from Recommended'
+            });
+
         } catch (error) {
-            console.error('Failed to delete', error);
-            alert('Failed to delete product');
+            console.error('Failed to toggle', error);
+            // Revert on error
+            setProducts(prev => prev.map(p =>
+                p.id === product.id ? { ...p, is_recommended: product.is_recommended } : p
+            ));
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to update status'
+            });
+        }
+    };
+
+    const handleDelete = async (id) => {
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+                await axios.delete(`${apiUrl}/api/products/${id}`);
+                fetchProducts();
+                Swal.fire(
+                    'Deleted!',
+                    'Your product has been deleted.',
+                    'success'
+                );
+            } catch (error) {
+                console.error('Failed to delete', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to delete product'
+                });
+            }
         }
     };
 
@@ -62,6 +121,7 @@ export default function AdminProductsPage() {
                             <th className="p-4">Name</th>
                             <th className="p-4">Category</th>
                             <th className="p-4">Price</th>
+                            <th className="p-4 text-center">Status</th>
                             <th className="p-4 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -74,6 +134,13 @@ export default function AdminProductsPage() {
                                 <td className="p-4 cursor-pointer font-medium text-slate-700">{product.name}</td>
                                 <td className="p-4 text-gray-500">{product.category}</td>
                                 <td className="p-4 font-semibold text-slate-800">฿{product.price}</td>
+                                <td className="p-4 text-center cursor-pointer" onClick={() => toggleRecommended(product)}>
+                                    {product.is_recommended ? (
+                                        <Star size={20} className="inline text-yellow-500 fill-yellow-500 hover:scale-110 transition-transform" />
+                                    ) : (
+                                        <Star size={20} className="inline text-gray-300 hover:text-yellow-400 transition-colors" />
+                                    )}
+                                </td>
                                 <td className="p-4 flex justify-center gap-2">
                                     <Link href={`/admin/products/edit/${product.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded transition">
                                         <Edit size={18} />

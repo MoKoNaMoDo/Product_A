@@ -18,6 +18,9 @@ export default function AdminLayout({ children }) {
                     <Link href="/admin/settings" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-800 hover:text-white">
                         Site Settings
                     </Link>
+                    <Link href="/admin/messages" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-800 hover:text-white">
+                        Messages
+                    </Link>
                     <Link href="/" className="block py-2.5 px-4 rounded transition duration-200 text-gray-400 hover:text-white mt-12 border-t border-slate-700">
                         ← Back to Site
                     </Link>
