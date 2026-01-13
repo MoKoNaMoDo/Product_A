@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     images: {
-        domains: ['images.unsplash.com'],
+        domains: ['images.unsplash.com', 'localhost'],
     },
     // i18n configuration could go here for pages router, 
     // but for App Router we typically use middleware which we will set up separately if needed.

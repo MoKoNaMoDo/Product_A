@@ -9,14 +9,14 @@ export default function AdminLayout({ children }) {
                     <h2 className="text-2xl font-bold text-blue-400">Admin Panel</h2>
                 </div>
                 <nav className="mt-6 px-4 space-y-2">
-                    <Link href="/admin/dashboard" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-800 hover:text-white">
+                    <Link href="/admin" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-800 hover:text-white">
                         Dashboard
                     </Link>
                     <Link href="/admin/products" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-800 hover:text-white">
                         Products
                     </Link>
                     <Link href="/admin/settings" className="block py-2.5 px-4 rounded transition duration-200 hover:bg-slate-800 hover:text-white">
-                        Sile Settings
+                        Site Settings
                     </Link>
                     <Link href="/" className="block py-2.5 px-4 rounded transition duration-200 text-gray-400 hover:text-white mt-12 border-t border-slate-700">
                         ← Back to Site

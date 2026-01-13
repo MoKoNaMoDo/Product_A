@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const initDb = require('./utils/init-db');
 
@@ -9,6 +10,8 @@ initDb();
 const productRoutes = require('./routes/product.routes');
 const siteSettingsRoutes = require('./routes/site-settings.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
+const coreValuesRoutes = require('./routes/core-values.routes');
+const homeBannersRoutes = require('./routes/home-banners.routes');
 const db = require('./config/db');
 
 const app = express();
@@ -17,6 +20,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Visit Counter Middleware (simple implementation)
 app.use(async (req, res, next) => {
@@ -47,6 +51,8 @@ app.use('/api/products', async (req, res, next) => {
 
 app.use('/api/site-settings', siteSettingsRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/core-values', coreValuesRoutes);
+app.use('/api/home-banners', homeBannersRoutes);
 // app.use('/api/admin', adminRoutes);
 
 // Start Server

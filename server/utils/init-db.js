@@ -19,6 +19,26 @@ const initDb = async () => {
             );
         `);
 
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS core_values (
+                id SERIAL PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                description TEXT,
+                image_url TEXT,
+                order_index INTEGER DEFAULT 0,
+                is_visible BOOLEAN DEFAULT TRUE
+            );
+        `);
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS home_banners (
+                id SERIAL PRIMARY KEY,
+                image_url TEXT NOT NULL,
+                order_index INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
         // Initialize visit counter if not exists
         const { rows } = await db.query("SELECT * FROM visit_stats WHERE page = 'home'");
         if (rows.length === 0) {

@@ -12,13 +12,22 @@ export default function CreateProductPage() {
         name: '',
         description: '',
         price: '',
-        category: '',
-        image_url: ''
+        category: ''
     });
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImage(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -26,7 +35,21 @@ export default function CreateProductPage() {
         setLoading(true);
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-            await axios.post(`${apiUrl}/api/products`, formData);
+
+            const data = new FormData();
+            data.append('name', formData.name);
+            data.append('description', formData.description);
+            data.append('price', formData.price);
+            data.append('category', formData.category);
+            if (image) {
+                data.append('image', image);
+            }
+
+            await axios.post(`${apiUrl}/api/products`, data, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             alert('Product Created Successfully!');
             router.push('/admin/products');
         } catch (error) {
@@ -70,9 +93,13 @@ export default function CreateProductPage() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-                        <input name="image_url" onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" placeholder="https://..." />
-                        <p className="text-xs text-gray-400 mt-1">Provide a direct link to an image.</p>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Image</label>
+                        <input type="file" accept="image/*" onChange={handleImageChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition" />
+                        {imagePreview && (
+                            <div className="mt-4">
+                                <img src={imagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-gray-200" />
+                            </div>
+                        )}
                     </div>
 
                     <button

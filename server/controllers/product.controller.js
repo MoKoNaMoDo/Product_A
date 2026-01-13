@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const { logActivity } = require('../utils/logger');
+const { deleteFile } = require('../utils/file-handler');
 
 // Get all products
 exports.getAllProducts = async (req, res) => {
@@ -32,7 +33,13 @@ exports.getProductById = async (req, res) => {
 // Create a new product
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, price, image_url, category } = req.body;
+        const { name, description, price, category } = req.body;
+        let { image_url } = req.body;
+
+        if (req.file) {
+            image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
+
         const { rows } = await db.query(
             'INSERT INTO products (name, description, price, image_url, category) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [name, description, price, image_url, category]
@@ -49,7 +56,19 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, description, price, image_url, category } = req.body;
+        const { name, description, price, category } = req.body;
+        let { image_url } = req.body;
+
+        if (req.file) {
+            // Fetch old image
+            const oldProductRes = await db.query('SELECT image_url FROM products WHERE id = $1', [id]);
+            if (oldProductRes.rows.length > 0 && oldProductRes.rows[0].image_url) {
+                deleteFile(oldProductRes.rows[0].image_url);
+            }
+
+            image_url = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        }
+
         const { rows } = await db.query(
             'UPDATE products SET name = $1, description = $2, price = $3, image_url = $4, category = $5 WHERE id = $6 RETURNING *',
             [name, description, price, image_url, category, id]
@@ -75,6 +94,10 @@ exports.deleteProduct = async (req, res) => {
 
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Product not found' });
+        }
+
+        if (rows[0].image_url) {
+            deleteFile(rows[0].image_url);
         }
 
         await logActivity('DELETE_PRODUCT', `Deleted product ID: ${id}`);
