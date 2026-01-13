@@ -37,9 +37,10 @@ export default function ContactPage() {
                     <h1 className="text-4xl md:text-5xl font-bold mb-4 font-sarabun">
                         {settings?.contact_title || 'ติดต่อเรา'}
                     </h1>
-                    <p className="text-xl text-gray-300 font-sarabun whitespace-pre-line">
-                        {settings?.contact_subtitle || 'เราพร้อมให้คำปรึกษาและบริการคุณ'}
-                    </p>
+                    <div
+                        className="text-xl text-gray-300 font-sarabun"
+                        dangerouslySetInnerHTML={{ __html: settings?.contact_subtitle || 'เราพร้อมให้คำปรึกษาและบริการคุณ' }}
+                    ></div>
                 </div>
             </div>
 
@@ -58,9 +59,10 @@ export default function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="font-bold text-gray-800 mb-2">ที่อยู่</h3>
-                                <p className="text-gray-600 whitespace-pre-line leading-relaxed">
-                                    {settings?.contact_address || 'ยังไม่มีข้อมูลที่อยู่'}
-                                </p>
+                                <div
+                                    className="text-gray-600 leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: settings?.contact_address || 'ยังไม่มีข้อมูลที่อยู่' }}
+                                ></div>
                             </div>
                         </div>
 

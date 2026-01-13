@@ -80,9 +80,12 @@ export default function HeroSlider() {
                 <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 drop-shadow-lg font-sarabun opacity-0 animate-fade-in-up" key={`text-title-${currentIndex}`}>
                     {settings.home_title}
                 </h1>
-                <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto font-sarabun drop-shadow-md opacity-0 animate-fade-in-up" style={{ animationDelay: '0.2s' }} key={`text-sub-${currentIndex}`}>
-                    {settings.home_subtitle}
-                </p>
+                <div
+                    className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto font-sarabun drop-shadow-md opacity-0 animate-fade-in-up"
+                    style={{ animationDelay: '0.2s' }}
+                    key={`text-sub-${currentIndex}`}
+                    dangerouslySetInnerHTML={{ __html: settings.home_subtitle }}
+                ></div>
 
                 {/* Dots Indicator */}
                 <div className="absolute bottom-8 flex gap-3">

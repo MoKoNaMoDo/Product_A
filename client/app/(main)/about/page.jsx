@@ -48,9 +48,10 @@ export default function AboutPage() {
                     <h1 className="text-4xl md:text-6xl font-bold mb-6 font-sarabun text-white drop-shadow-md">
                         {settings?.about_hero_title || (settings?.site_title ? `About ${settings.site_title}` : 'เกี่ยวกับเรา')}
                     </h1>
-                    <p className="text-lg md:text-xl text-gray-200 font-sarabun max-w-2xl mx-auto">
-                        {settings?.about_hero_subtitle || 'มุ่งมั่นนำเสนอสินค้าคุณภาพเยี่ยม เพื่อตอบโจทย์ทุกไลฟ์สไตล์ของคุณ ด้วยความใส่ใจและบริการที่เป็นเลิศ'}
-                    </p>
+                    <div
+                        className="text-lg md:text-xl text-gray-200 font-sarabun max-w-2xl mx-auto"
+                        dangerouslySetInnerHTML={{ __html: settings?.about_hero_subtitle || 'มุ่งมั่นนำเสนอสินค้าคุณภาพเยี่ยม เพื่อตอบโจทย์ทุกไลฟ์สไตล์ของคุณ ด้วยความใส่ใจและบริการที่เป็นเลิศ' }}
+                    ></div>
                 </div>
             </section>
 
@@ -71,9 +72,10 @@ export default function AboutPage() {
                             <h2 className="text-3xl font-bold text-gray-900 mb-6 font-sarabun">
                                 {settings?.about_title || 'เรื่องราวของเรา'}
                             </h2>
-                            <p className="text-gray-600 text-lg mb-6 leading-relaxed font-sarabun whitespace-pre-line">
-                                {settings?.about_us || 'ก่อตั้งขึ้นด้วยความตั้งใจที่จะรวบรวมสินค้าที่มีคุณภาพ...'}
-                            </p>
+                            <div
+                                className="text-gray-600 text-lg mb-6 leading-relaxed font-sarabun rich-text-content"
+                                dangerouslySetInnerHTML={{ __html: settings?.about_us || 'ก่อตั้งขึ้นด้วยความตั้งใจที่จะรวบรวมสินค้าที่มีคุณภาพ...' }}
+                            ></div>
                         </div>
                     </div>
                 </div>
@@ -86,9 +88,10 @@ export default function AboutPage() {
                         <h2 className="text-3xl font-bold text-gray-900 mb-4 font-sarabun">
                             {settings?.core_values_title || 'ค่านิยมของเรา'}
                         </h2>
-                        <p className="text-gray-600 max-w-2xl mx-auto font-sarabun">
-                            {settings?.core_values_subtitle || 'สิ่งที่เรายึดมั่นในการดำเนินงาน เพื่อส่งมอบสิ่งที่ดีที่สุดให้กับคุณ'}
-                        </p>
+                        <div
+                            className="text-gray-600 max-w-2xl mx-auto font-sarabun"
+                            dangerouslySetInnerHTML={{ __html: settings?.core_values_subtitle || 'สิ่งที่เรายึดมั่นในการดำเนินงาน เพื่อส่งมอบสิ่งที่ดีที่สุดให้กับคุณ' }}
+                        ></div>
                     </div>
 
                     {/* Carousel Container */}
@@ -105,9 +108,10 @@ export default function AboutPage() {
                                             )}
                                         </div>
                                         <h3 className="text-xl font-bold text-gray-900 mb-3 font-sarabun">{val.title}</h3>
-                                        <p className="text-gray-600 font-sarabun min-h-[4.5rem]">
-                                            {val.description}
-                                        </p>
+                                        <div
+                                            className="text-gray-600 font-sarabun min-h-[4.5rem]"
+                                            dangerouslySetInnerHTML={{ __html: val.description }}
+                                        ></div>
                                     </div>
                                 ))
                             ) : (

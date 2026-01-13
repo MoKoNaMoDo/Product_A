@@ -26,7 +26,7 @@ exports.updateSettings = async (req, res) => {
         // Handle uploaded files
         if (req.files) {
             // Fetch current settings to get old image URLs
-            const { rows: currentRows } = await db.query("SELECT key_name, value_content FROM site_settings WHERE key_name IN ('hero_image', 'about_image')");
+            const { rows: currentRows } = await db.query("SELECT key_name, value_content FROM site_settings WHERE key_name IN ('hero_image', 'about_image', 'site_logo')");
             const currentSettings = currentRows.reduce((acc, row) => {
                 acc[row.key_name] = row.value_content;
                 return acc;
@@ -43,6 +43,12 @@ exports.updateSettings = async (req, res) => {
                     deleteFile(currentSettings['about_image']);
                 }
                 settings['about_image'] = `${req.protocol}://${req.get('host')}/uploads/${req.files['about_image'][0].filename}`;
+            }
+            if (req.files['site_logo']) {
+                if (currentSettings['site_logo']) {
+                    deleteFile(currentSettings['site_logo']);
+                }
+                settings['site_logo'] = `${req.protocol}://${req.get('host')}/uploads/${req.files['site_logo'][0].filename}`;
             }
         }
 

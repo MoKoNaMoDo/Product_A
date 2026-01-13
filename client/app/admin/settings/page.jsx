@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import RichTextEditor from '@/components/RichTextEditor';
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -25,12 +26,14 @@ export default function SiteSettingsPage() {
         about_hero_subtitle: '',
         about_us: '',
         core_values_title: '',
-        core_values_subtitle: ''
+        core_values_subtitle: '',
+        show_logo: 'true'
     });
     const [heroImage, setHeroImage] = useState(null);
     const [aboutImage, setAboutImage] = useState(null);
-    const [currentImages, setCurrentImages] = useState({ hero: '', about: '' });
-    const [previews, setPreviews] = useState({ hero: '', about: '' });
+    const [logoImage, setLogoImage] = useState(null);
+    const [currentImages, setCurrentImages] = useState({ hero: '', about: '', logo: '' });
+    const [previews, setPreviews] = useState({ hero: '', about: '', logo: '' });
 
     // Core Values State
     const [coreValues, setCoreValues] = useState([]);
@@ -53,9 +56,9 @@ export default function SiteSettingsPage() {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
             const res = await axios.get(`${apiUrl}/api/site-settings`);
             // Merge defaults in case some keys are missing
-            const { hero_image, about_image, ...rest } = res.data;
+            const { hero_image, about_image, site_logo, ...rest } = res.data;
             setSettings(prev => ({ ...prev, ...rest }));
-            setCurrentImages({ hero: hero_image, about: about_image });
+            setCurrentImages({ hero: hero_image, about: about_image, logo: site_logo });
 
             // Fetch Core Values
             // Fetch Core Values
@@ -73,7 +76,12 @@ export default function SiteSettingsPage() {
     };
 
     const handleChange = (e) => {
-        setSettings({ ...settings, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked.toString() : e.target.value;
+        setSettings({ ...settings, [e.target.name]: value });
+    };
+
+    const handleRichTextChange = (name, value) => {
+        setSettings(prev => ({ ...prev, [name]: value }));
     };
 
     const handleFileChange = (e, type) => {
@@ -85,6 +93,9 @@ export default function SiteSettingsPage() {
             } else if (type === 'about') {
                 setAboutImage(file);
                 setPreviews(prev => ({ ...prev, about: URL.createObjectURL(file) }));
+            } else if (type === 'logo') {
+                setLogoImage(file);
+                setPreviews(prev => ({ ...prev, logo: URL.createObjectURL(file) }));
             } else if (type === 'newValue') {
                 setNewValueImage(file);
             }
@@ -195,6 +206,7 @@ export default function SiteSettingsPage() {
 
             if (heroImage) formData.append('hero_image', heroImage);
             if (aboutImage) formData.append('about_image', aboutImage);
+            if (logoImage) formData.append('site_logo', logoImage);
 
             await axios.put(`${apiUrl}/api/site-settings`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
@@ -237,10 +249,69 @@ export default function SiteSettingsPage() {
                 <div className={activeTab === 'general' ? 'block' : 'hidden'}>
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">General Information</h2>
+
+                        {/* Navbar Live Preview */}
+                        <div className="mb-8">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Navbar Live Preview</label>
+                            <div className="w-full bg-white/80 backdrop-blur-md border border-gray-200 rounded-lg p-4 font-sarabun shadow-sm">
+                                <div className="flex justify-between items-center h-16 max-w-full px-4 border-b border-gray-100 bg-white rounded-md">
+                                    <div className="flex items-center space-x-2">
+                                        {(previews.logo || currentImages.logo) && settings.show_logo === 'true' ? (
+                                            <div className="w-10 h-10 relative overflow-hidden rounded-lg border border-gray-100">
+                                                <img src={previews.logo || currentImages.logo} alt="Logo Preview" className="w-full h-full object-contain" />
+                                            </div>
+                                        ) : (
+                                            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center text-white font-bold">
+                                                {(settings.site_title || 'C').charAt(0)}
+                                            </div>
+                                        )}
+                                        <span className="text-xl font-bold text-gray-900 tracking-tight">
+                                            {settings.site_title || 'Catalog'}
+                                        </span>
+                                    </div>
+
+                                    {/* Mock Navigation for realism */}
+                                    <div className="hidden md:flex items-center space-x-4 opacity-50 scale-90 origin-right">
+                                        <span className="text-gray-600 font-medium">Home</span>
+                                        <span className="text-gray-600 font-medium">Products</span>
+                                        <span className="text-gray-600 font-medium">About Us</span>
+                                        <span className="px-4 py-2 bg-primary-600 text-white rounded-full text-sm">Contact Us</span>
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2 text-center">This is how your logo and title will appear on the website.</p>
+                            </div>
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Site Title</label>
                                 <input name="site_title" value={settings.site_title || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Site Logo</label>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-gray-100 rounded-lg border flex items-center justify-center overflow-hidden">
+                                        {(previews.logo || currentImages.logo) ? (
+                                            <img src={previews.logo || currentImages.logo} alt="Logo" className="w-full h-full object-contain" />
+                                        ) : (
+                                            <span className="text-xs text-gray-400">N/A</span>
+                                        )}
+                                    </div>
+                                    <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, 'logo')} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                                </div>
+                                <div className="mt-2 flex items-center">
+                                    <input
+                                        type="checkbox"
+                                        id="show_logo"
+                                        name="show_logo"
+                                        checked={settings.show_logo === 'true'}
+                                        onChange={handleChange}
+                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor="show_logo" className="ml-2 block text-sm text-gray-900">
+                                        Show Logo in Navbar (If unchecked, site title text will be used)
+                                    </label>
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
@@ -260,7 +331,11 @@ export default function SiteSettingsPage() {
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                                <textarea name="contact_address" rows="3" value={settings.contact_address || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                                <RichTextEditor
+                                    value={settings.contact_address || ''}
+                                    onChange={(val) => handleRichTextChange('contact_address', val)}
+                                    placeholder="Enter address..."
+                                />
                             </div>
                         </div>
                         <div className="mt-6 flex justify-end">
@@ -343,7 +418,11 @@ export default function SiteSettingsPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Subtitle / Tagline</label>
-                                <textarea name="home_subtitle" placeholder="ค้นพบประสบการณ์ใหม่..." rows="2" value={settings.home_subtitle || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+                                <RichTextEditor
+                                    value={settings.home_subtitle || ''}
+                                    onChange={(val) => handleRichTextChange('home_subtitle', val)}
+                                    placeholder="ค้นพบประสบการณ์ใหม่..."
+                                />
                                 <p className="text-xs text-gray-500 mt-1">Default: "ค้นพบประสบการณ์ใหม่แห่งการเลือกซื้อสินค้า"</p>
                             </div>
                         </div>
@@ -378,7 +457,11 @@ export default function SiteSettingsPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">About Page Hero Subtitle</label>
-                                        <textarea name="about_hero_subtitle" placeholder="มุ่งมั่นนำเสนอสินค้าคุณภาพเยี่ยม..." rows="2" value={settings.about_hero_subtitle || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+                                        <RichTextEditor
+                                            value={settings.about_hero_subtitle || ''}
+                                            onChange={(val) => handleRichTextChange('about_hero_subtitle', val)}
+                                            placeholder="มุ่งมั่นนำเสนอสินค้าคุณภาพเยี่ยม..."
+                                        />
                                         <p className="text-xs text-gray-500 mt-1">Default: "มุ่งมั่นนำเสนอสินค้าคุณภาพเยี่ยม เพื่อตอบโจทย์ทุกไลฟ์สไตล์ของคุณ..."</p>
                                     </div>
                                     <div>
@@ -421,7 +504,11 @@ export default function SiteSettingsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">About Us Description</label>
-                                    <textarea name="about_us" rows="6" value={settings.about_us || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Write something about the company..."></textarea>
+                                    <RichTextEditor
+                                        value={settings.about_us || ''}
+                                        onChange={(val) => handleRichTextChange('about_us', val)}
+                                        placeholder="Write something about the company..."
+                                    />
                                     <p className="text-xs text-gray-500 mt-1">Default: "ก่อตั้งขึ้นด้วยความตั้งใจที่จะรวบรวมสินค้าที่มีคุณภาพ..."</p>
                                 </div>
                             </div>
@@ -442,7 +529,11 @@ export default function SiteSettingsPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Contact Page Subtitle</label>
-                                <textarea name="contact_subtitle" placeholder="เราพร้อมให้คำปรึกษา..." rows="2" value={settings.contact_subtitle || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+                                <RichTextEditor
+                                    value={settings.contact_subtitle || ''}
+                                    onChange={(val) => handleRichTextChange('contact_subtitle', val)}
+                                    placeholder="เราพร้อมให้คำปรึกษา..."
+                                />
                                 <p className="text-xs text-gray-500 mt-1">Default: "เราพร้อมให้คำปรึกษาและบริการคุณ"</p>
                             </div>
                         </div>
@@ -475,7 +566,11 @@ export default function SiteSettingsPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Section Subtitle</label>
-                                <textarea name="core_values_subtitle" placeholder="สิ่งที่เรายึดมั่น..." rows="2" value={settings.core_values_subtitle || ''} onChange={handleChange} className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"></textarea>
+                                <RichTextEditor
+                                    value={settings.core_values_subtitle || ''}
+                                    onChange={(val) => handleRichTextChange('core_values_subtitle', val)}
+                                    placeholder="สิ่งที่เรายึดมั่น..."
+                                />
                                 <p className="text-xs text-gray-500 mt-1">Default: "สิ่งที่เรายึดมั่นในการดำเนินงาน เพื่อส่งมอบสิ่งที่ดีที่สุดให้กับคุณ"</p>
                             </div>
                         </div>
@@ -497,7 +592,7 @@ export default function SiteSettingsPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="font-bold text-gray-800 truncate">{val.title}</h4>
-                                            <p className="text-sm text-gray-600 line-clamp-2">{val.description}</p>
+                                            <p className="text-sm text-gray-600 line-clamp-2" dangerouslySetInnerHTML={{ __html: val.description }}></p>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
@@ -558,13 +653,12 @@ export default function SiteSettingsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold uppercase text-gray-500 mb-1">Description</label>
-                                    <textarea
-                                        placeholder="Brief description of the value..."
+                                    <RichTextEditor
                                         value={newValue.description}
-                                        onChange={e => setNewValue({ ...newValue, description: e.target.value })}
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                        rows="2"
-                                    ></textarea>
+                                        onChange={(val) => setNewValue({ ...newValue, description: val })}
+                                        placeholder="Brief description of the value..."
+                                        className="h-32"
+                                    />
                                 </div>
                                 <div className="flex justify-end mt-2">
                                     <button

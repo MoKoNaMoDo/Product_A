@@ -9,8 +9,8 @@ const sarabun = Sarabun({
 })
 
 export const metadata = {
-    title: 'My Awesome Catalog',
-    description: 'Product Catalog Template',
+    title: 'Catalog',
+    description: 'Product Catalog',
 }
 
 export default function RootLayout({ children }) {

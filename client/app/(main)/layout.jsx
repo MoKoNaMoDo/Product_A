@@ -1,4 +1,5 @@
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export default function MainLayout({ children }) {
     return (
@@ -7,11 +8,7 @@ export default function MainLayout({ children }) {
             <main className="flex-grow">
                 {children}
             </main>
-            <footer className="bg-white border-t border-gray-100 py-12">
-                <div className="max-w-7xl mx-auto px-4 text-center text-gray-500">
-                    <p>© 2024 Product Catalog. All rights reserved.</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }
